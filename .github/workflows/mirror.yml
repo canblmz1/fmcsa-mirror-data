@@ -1,0 +1,41 @@
+name: mirror-fmcsa-data
+
+on:
+  schedule:
+    - cron: "15 8 * * *" # daily, ~08:15 UTC — after FMCSA's own nightly refresh
+  workflow_dispatch: {}
+
+permissions:
+  contents: write # create/update the `daily` release and its assets
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download authority (L&I) export
+        run: |
+          curl -fSL --retry 3 --retry-delay 20 \
+            -A "fmcsa-mirror-data/1.0 (github.com/${{ github.repository }})" \
+            "https://data.transportation.gov/api/views/6eyk-hxee/rows.csv?accessType=DOWNLOAD" \
+            -o authority.csv
+          head -1 authority.csv | grep -q "DOCKET_NUMBER" || { echo "authority header changed"; exit 1; }
+          [ "$(stat -c%s authority.csv)" -gt 50000000 ] || { echo "authority suspiciously small"; exit 1; }
+
+      - name: Download census export
+        run: |
+          curl -fSL --retry 3 --retry-delay 20 \
+            -A "fmcsa-mirror-data/1.0 (github.com/${{ github.repository }})" \
+            "https://data.transportation.gov/api/views/az4n-8mr2/rows.csv?accessType=DOWNLOAD" \
+            -o census.csv
+          head -1 census.csv | grep -q "DOT_NUMBER" || { echo "census header changed"; exit 1; }
+          [ "$(stat -c%s census.csv)" -gt 200000000 ] || { echo "census suspiciously small"; exit 1; }
+
+      - name: Publish to the `daily` release (overwrite previous assets)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view daily -R "${{ github.repository }}" >/dev/null 2>&1 || \
+            gh release create daily -R "${{ github.repository }}" \
+              --title "Daily FMCSA mirror" \
+              --notes "Rolling daily mirror of public-domain FMCSA datasets (L&I authority + company census)."
+          gh release upload daily authority.csv census.csv --clobber -R "${{ github.repository }}"
