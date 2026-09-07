@@ -1,0 +1,21 @@
+FMCSA Mirror Data — Data Provenance Notice
+
+This repository republishes datasets produced by the U.S. Department of
+Transportation / Federal Motor Carrier Safety Administration (FMCSA) from
+data.transportation.gov.
+
+Mirrored datasets:
+
+- Licensing & Insurance carrier authority — dataset 6eyk-hxee
+- FMCSA Company Census — dataset az4n-8mr2
+
+The mirrored dataset contents are U.S. federal government works and are
+identified here as public-domain source data. This repository does not claim
+copyright ownership over those dataset contents.
+
+The MIT License in LICENSE applies only to repository-authored automation and
+documentation, not to the underlying federal government datasets.
+
+Users should consult the original data portal and dataset metadata for the
+authoritative source, update cadence, field definitions, and any source-side
+terms or notices.
